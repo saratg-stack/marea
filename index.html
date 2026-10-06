@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Marea · Catálogo de Bodies</title>
+<meta name="description" content="Catálogo de bodies Marea. Elige tus favoritos y haz tu pedido por WhatsApp.">
+<link rel="icon" href="isologo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ======= CONFIGURACIÓN RÁPIDA =======
+     Cambia el número de WhatsApp en el script de abajo (WHATSAPP). */
+  :root{
+    --rosa:#B28B7C;      /* color del logo */
+    --rosa-osc:#8F6A5C;
+    --blush:#F9D9D9;
+    --lila:#E2D8FC;
+    --menta:#E3FFF9;
+    --teal:#6FAEA3;
+    --wpp:#25D366;
+    --tinta:#3B2E2A;
+    --gris:#8A7F7B;
+    --fondo:#FFFBFA;
+    --borde:#EFE4E0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+  body{font-family:'Jost',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);padding-bottom:110px}
+  button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+  img{display:block;max-width:100%}
+
+  /* Header */
+  header{position:sticky;top:0;z-index:20;background:rgba(255,251,250,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--borde)}
+  .top{display:flex;justify-content:center;padding:18px 16px 14px}
+  .top img{height:48px;width:auto;max-width:80%}
+  @media(min-width:640px){.top img{height:60px}}
+  .tabs{display:flex;gap:8px;padding:0 16px 12px;max-width:1100px;margin:0 auto;overflow-x:auto}
+  .tab{flex:1;min-width:max-content;padding:10px 14px;border-radius:999px;background:#fff;border:1px solid var(--borde);font-weight:500;font-size:15px;white-space:nowrap}
+  .tab.on{background:var(--rosa);border-color:var(--rosa);color:#fff}
+  .tab small{opacity:.75;font-weight:400}
+
+  .intro{text-align:center;padding:18px 16px 4px;color:var(--gris);font-size:15px;max-width:600px;margin:0 auto}
+  .search{max-width:1100px;margin:12px auto 0;padding:0 16px}
+  .search input{width:100%;padding:12px 16px;border-radius:12px;border:1px solid var(--borde);background:#fff;font:inherit;font-size:16px;color:var(--tinta)}
+  .search input:focus{outline:2px solid var(--blush);border-color:var(--rosa)}
+
+  /* Grid */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:16px;max-width:1100px;margin:0 auto}
+  @media(min-width:640px){.grid{grid-template-columns:repeat(3,1fr);gap:18px}}
+  @media(min-width:960px){.grid{grid-template-columns:repeat(4,1fr)}}
+  .card{background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--borde);text-align:left;display:flex;flex-direction:column;transition:transform .15s}
+  .card:active{transform:scale(.98)}
+  .ph{position:relative;aspect-ratio:7/10;background:var(--blush)}
+  .ph img{width:100%;height:100%;object-fit:cover}
+  .badge{position:absolute;top:8px;left:8px;background:var(--lila);color:#5B4A8B;font-size:11px;font-weight:600;padding:4px 8px;border-radius:999px;letter-spacing:.04em}
+  .incart{position:absolute;top:8px;right:8px;background:var(--teal);color:#fff;font-size:12px;font-weight:600;min-width:24px;height:24px;border-radius:999px;display:none;align-items:center;justify-content:center;padding:0 7px}
+  .incart.show{display:flex}
+  .info{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px;flex:1}
+  .name{font-weight:500;font-size:15px;line-height:1.2}
+  .sub{font-size:13px;color:var(--gris)}
+  .price{font-weight:600;font-size:16px;color:var(--rosa-osc);margin-bottom:8px}
+  .det-price{font-size:20px;font-weight:600;color:var(--rosa-osc);margin-top:4px}
+  .row .t p.rp{color:var(--tinta);font-weight:600;font-size:14px}
+  .total{display:flex;justify-content:space-between;align-items:center;padding:14px 0 2px;font-size:17px}
+  .total b{font-size:20px;color:var(--rosa-osc)}
+  .pick{margin-top:auto;background:var(--blush);color:var(--rosa-osc);font-weight:600;font-size:14px;padding:9px;border-radius:10px;text-align:center}
+  .empty{text-align:center;color:var(--gris);padding:40px 16px;grid-column:1/-1}
+
+  /* Botón flotante del pedido */
+  .fab{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:30;max-width:520px;margin:0 auto;display:none;align-items:center;justify-content:space-between;gap:12px;background:var(--wpp);color:#fff;padding:15px 20px;border-radius:16px;font-weight:600;font-size:16px;box-shadow:0 8px 24px rgba(37,211,102,.35)}
+  .fab.show{display:flex}
+  .fab .n{background:#fff;color:#128C4A;border-radius:999px;min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;padding:0 8px}
+
+  /* Hojas inferiores (modal) */
+  .veil{position:fixed;inset:0;background:rgba(59,46,42,.45);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+  .veil.show{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fff;border-radius:22px 22px 0 0;max-height:92vh;overflow-y:auto;transform:translateY(105%);transition:transform .25s ease;max-width:560px;margin:0 auto;padding-bottom:env(safe-area-inset-bottom)}
+  .sheet.show{transform:none}
+  .grab{width:44px;height:5px;border-radius:9px;background:var(--borde);margin:10px auto 0}
+  .close{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.9);font-size:22px;line-height:1;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+  .pad{padding:16px 20px 22px}
+
+  .det-img{width:100%;height:min(54vh,560px);object-fit:contain;background:#fff;padding-top:8px}
+  .det-name{font-size:22px;font-weight:600}
+  .lbl{font-size:14px;font-weight:600;margin:18px 0 10px;display:flex;justify-content:space-between}
+  .lbl span{font-weight:400;color:var(--gris)}
+  .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:10px}
+  .sw{aspect-ratio:1;border-radius:999px;border:1px solid rgba(0,0,0,.12);position:relative}
+  .sw.on{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--rosa)}
+  .sw.on::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:var(--chk,#fff)}
+  .qty{display:flex;align-items:center;gap:6px}
+  .qty button{width:40px;height:40px;border-radius:12px;background:var(--blush);font-size:20px;font-weight:600;color:var(--rosa-osc)}
+  .qty b{min-width:32px;text-align:center;font-size:18px}
+  .add{width:100%;margin-top:22px;padding:16px;border-radius:14px;background:var(--rosa);color:#fff;font-weight:600;font-size:16px}
+  .add:disabled{background:#D8C9C3}
+  .hint{font-size:13px;color:var(--gris);text-align:center;margin-top:8px}
+
+  /* Pedido */
+  .cart-title{font-size:20px;font-weight:600;margin-bottom:12px}
+  .row{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--borde)}
+  .row img{width:56px;height:76px;object-fit:cover;border-radius:10px;flex:none}
+  .row .t{flex:1;min-width:0}
+  .row .t div{font-weight:500;font-size:15px}
+  .row .t p{font-size:13px;color:var(--gris);display:flex;align-items:center;gap:6px;margin-top:3px}
+  .dot{width:14px;height:14px;border-radius:999px;border:1px solid rgba(0,0,0,.15);flex:none}
+  .row .qty button{width:32px;height:32px;border-radius:10px;font-size:17px}
+  .row .qty b{min-width:22px;font-size:15px}
+  .field{width:100%;margin-top:16px;padding:12px 14px;border-radius:12px;border:1px solid var(--borde);font:inherit;font-size:16px;color:var(--tinta)}
+  .send{width:100%;margin-top:16px;padding:16px;border-radius:14px;background:var(--wpp);color:#fff;font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;gap:10px}
+  .clear{display:block;margin:12px auto 0;color:var(--gris);font-size:14px;text-decoration:underline}
+
+  footer{text-align:center;padding:20px 16px;color:var(--gris);font-size:13px}
+  footer img{height:26px;margin:0 auto 6px;opacity:.8}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="top"><img src="Logo.png" alt="Marea"></div>
+  <nav class="tabs" id="tabs"></nav>
+</header>
+
+<p class="intro">Toca un body, elige el color y agrégalo. Cuando termines, envía tu pedido por WhatsApp.</p>
+<div class="search"><input id="q" type="search" placeholder="Buscar por nombre… (ej: Málaga)" autocomplete="off"></div>
+
+<main class="grid" id="grid"></main>
+
+<footer><img src="isologo.png" alt="">Marea · Bodies</footer>
+
+<button class="fab" id="fab"><span>Ver mi pedido</span><span class="n" id="fabN">0</span></button>
+
+<div class="veil" id="veil"></div>
+
+<!-- Detalle de producto -->
+<section class="sheet" id="detail" aria-modal="true" role="dialog">
+  <button class="close" data-close>×</button>
+  <img class="det-img" id="dImg" alt="">
+  <div class="pad">
+    <div class="sub" id="dType"></div>
+    <div class="det-name" id="dName"></div>
+    <div class="det-price" id="dPrice"></div>
+    <div class="lbl">Color <span id="dColor">Elige uno</span></div>
+    <div class="swatches" id="dSw"></div>
+    <div class="lbl">Cantidad</div>
+    <div class="qty"><button id="dMinus">−</button><b id="dQty">1</b><button id="dPlus">+</button></div>
+    <button class="add" id="dAdd" disabled>Elige un color</button>
+    <p class="hint">Puedes agregar el mismo body en varios colores.</p>
+  </div>
+</section>
+
+<!-- Pedido -->
+<section class="sheet" id="cart" aria-modal="true" role="dialog">
+  <div class="grab"></div>
+  <button class="close" data-close>×</button>
+  <div class="pad">
+    <div class="cart-title">Mi pedido</div>
+    <div id="cItems"></div>
+    <div class="total"><span>Total</span><b id="cTotal"></b></div>
+    <input class="field" id="cName" placeholder="Tu nombre (opcional)" autocomplete="name">
+    <button class="send" id="cSend">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
+      Enviar pedido por WhatsApp
+    </button>
+    <button class="clear" id="cClear">Vaciar pedido</button>
+  </div>
+</section>
+
+<script>
+/* ===================== CONFIGURA AQUÍ ===================== */
+// Número de WhatsApp con código de país, sin "+" ni espacios. Ej Colombia: 573001234567
+const WHATSAPP = "573249158623";
+
+const COLORES = [
+  ["Negro","#000000"],["Marfil","#FBF5E4"],["Blanco","#FFFFFF"],["Cocoa","#B08A80"],
+  ["Caramelo","#B66B49"],["Camel","#D8BFA6"],["Café oscuro","#4A2A20"],["Gris ratón","#7A777A"],
+  ["Azul oscuro","#0B1A5E"],["Azul rey","#1747C2"],["Azul cielo","#8DC7F2"],["Mantequilla","#F8EAA6"],
+  ["Verde pistacho","#B5D3C0"],["Terracota","#B44A35"],["Azul petróleo","#0F4A6B"],["Azul bebé","#87D3F8"],
+  ["Lila","#B9A9DC"],["Palo de rosa","#EBA9AD"],["Rosa viejo","#CF7A86"],["Rosado bebé","#F7BBD3"],
+  ["Vinotinto","#6B0F2A"],["Rojo","#D9141C"],["Magenta","#E0189A"],["Morado","#7A3DB5"],
+  ["Verde botella","#1C4A3E"],["Verde militar","#4F5E3A"],["Verde menta","#A9D9C4"]
+];
+
+// [archivo de la foto, nombre a mostrar, tipo]  — tipo: "normal" o "plus"
+// Precios en pesos
+const PRECIO_NORMAL  = 28000;
+const PRECIO_HERRAJE = 32000;   // los que en el nombre dicen "Herraje"
+const PRECIO_PLUS    = 34000;
+
+// Descripción de tallas
+const TALLA_NORMAL = "Sede hasta la talla L";
+const TALLA_PLUS   = "Talla XL";
+
+// Material (se muestra en todos)
+const MATERIAL = "Polilicra doble tela";
+
+const PRODUCTOS = [
+  ["AFRODITA MG","Afrodita Manga","normal"],
+  ["AFRODITA SISO","Afrodita Siso","normal"],
+  ["ALMA MG CT","Alma Manga Corta","normal"],
+  ["ALMA MG LG","Alma Manga Larga","normal"],
+  ["ALMA SISO","Alma Siso","normal"],
+  ["ATENAS","Atenas","normal"],
+  ["AURORA MG LG","Aurora Manga Larga","normal"],
+  ["AURORA SISO","Aurora Siso","normal"],
+  ["AVELLANA","Avellana","normal"],
+  ["BELLOTA","Bellota","normal"],
+  ["CAMELIA SISO","Camelia Siso","normal"],
+  ["CAPEYA","Capeya","normal"],
+  ["CATALEYA SISO","Cataleya Siso","normal"],
+  ["FRANCIA MG LG","Francia Manga Larga","normal"],
+  ["GAZANIA","Gazania","normal"],
+  ["GINEBRA SISO","Ginebra Siso","normal"],
+  ["GUADALUPE","Guadalupe","normal"],
+  ["HERRAJE  ROI","Herraje Roi","normal"],
+  ["HERRAJE ROMELIA","Herraje Romelia","normal"],
+  ["IBIZA","Ibiza","normal"],
+  ["ITALIANO","Italiano","normal"],
+  ["IVEL","Ivel","normal"],
+  ["KATHIA","Kathia","normal"],
+  ["LUCIANA","Luciana","normal"],
+  ["MALAGA CROP TOP","Málaga Crop Top","normal"],
+  ["MALAGA MG CT","Málaga Manga Corta","normal"],
+  ["MALAGA MG LG","Málaga Manga Larga","normal"],
+  ["MALAGA SISO","Málaga Siso","normal"],
+  ["MALLATEX FERRERO MG LG","Mallatex Ferrero Manga Larga","normal"],
+  ["MARIPOSA","Mariposa","normal"],
+  ["MIEL","Miel","normal"],
+  ["ORQUIDEA MG","Orquídea Manga","normal"],
+  ["ORQUIDEA MG CT","Orquídea Manga Corta","normal"],
+  ["PALERMO MG LG","Palermo Manga Larga","normal"],
+  ["PARIS MG LG","París Manga Larga","normal"],
+  ["PERLA MG LG","Perla Manga Larga","normal"],
+  ["ROMA MG LG","Roma Manga Larga","normal"],
+  ["SEVILLA","Sevilla","normal"],
+  ["TOLEDO STRAPLE","Toledo Strapless","normal"],
+  ["ZULEMA","Zulema","normal"],
+  ["PLUS MALAGA","Málaga","plus"],
+  ["PLUS MALAGA SISO","Málaga Siso","plus"],
+  ["PLUS  MALAPALERMO MG LG","Palermo Manga Larga","plus"],
+  ["PLUS ORQUIDEA","Orquídea","plus"],
+  ["PLUS PERLA","Perla","plus"],
+  ["PLUS ROMA","Roma","plus"]
+];
+/* ========================================================== */
+
+const $ = s => document.querySelector(s);
+const precioDe = (f,t) => t==="plus" ? PRECIO_PLUS : /^HERRAJE/i.test(f) ? PRECIO_HERRAJE : PRECIO_NORMAL;
+const items = PRODUCTOS.map(([f,n,t],i)=>({id:i,file:f,img:"Bodies/"+encodeURIComponent(f)+".jpeg",name:n,type:t,price:precioDe(f,t)}));
+const plata = n => "$" + n.toLocaleString("es-CO");
+const tallaDe = p => p.type==="plus" ? TALLA_PLUS : TALLA_NORMAL;
+const typeLabel = t => t==="plus" ? "Talla Plus" : "Básico";
+const colorHex = name => (COLORES.find(c=>c[0]===name)||[,"#ccc"])[1];
+const isLight = hex => { const n=parseInt(hex.slice(1),16); return ((n>>16)*299+((n>>8)&255)*587+(n&255)*114)/1000 > 160; };
+
+let filtro = "all", texto = "";
+let pedido = [];
+try { pedido = JSON.parse(localStorage.getItem("marea_pedido")) || []; } catch(e) {}
+const guardar = () => { try { localStorage.setItem("marea_pedido", JSON.stringify(pedido)); } catch(e) {} };
+
+/* Pestañas */
+function pintarTabs(){
+  const n = t => items.filter(p=>t==="all"||p.type===t).length;
+  $("#tabs").innerHTML = [["all","Todos"],["normal","Básicos"],["plus","Talla Plus"]]
+    .map(([k,l])=>`<button class="tab ${filtro===k?"on":""}" data-t="${k}">${l} <small>${n(k)}</small></button>`).join("");
+}
+$("#tabs").onclick = e => { const b=e.target.closest(".tab"); if(!b) return; filtro=b.dataset.t; pintarTabs(); pintarGrid(); };
+$("#q").oninput = e => { texto = e.target.value.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); pintarGrid(); };
+
+/* Catálogo */
+function pintarGrid(){
+  const lista = items.filter(p => (filtro==="all"||p.type===filtro) &&
+    p.name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").includes(texto));
+  $("#grid").innerHTML = lista.length ? lista.map(p=>{
+    const c = pedido.filter(x=>x.id===p.id).reduce((a,x)=>a+x.qty,0);
+    return `<button class="card" data-id="${p.id}">
+      <div class="ph"><img src="${p.img}" alt="${p.name}" loading="lazy">
+        ${p.type==="plus"?'<span class="badge">TALLA PLUS</span>':""}
+        <span class="incart ${c?"show":""}">${c}</span></div>
+      <div class="info"><div class="name">${p.name}</div><div class="sub">${tallaDe(p)}<br>${MATERIAL}</div><div class="price">${plata(p.price)}</div><div class="pick">Elegir</div></div>
+    </button>`;}).join("") : `<p class="empty">No encontramos ese body 🙈</p>`;
+}
+$("#grid").onclick = e => { const c=e.target.closest(".card"); if(c) abrirDetalle(+c.dataset.id); };
+
+/* Detalle */
+let actual=null, color=null, qty=1;
+$("#dSw").innerHTML = COLORES.map(([n,h])=>`<button class="sw" title="${n}" aria-label="${n}" data-c="${n}" style="background:${h};--chk:${isLight(h)?"#3B2E2A":"#fff"}"></button>`).join("");
+function abrirDetalle(id){
+  actual = items[id]; color=null; qty=1;
+  $("#dImg").src = actual.img; $("#dImg").alt = actual.name;
+  $("#dName").textContent = actual.name;
+  $("#dType").textContent = typeLabel(actual.type) + " · " + tallaDe(actual) + " · " + MATERIAL;
+  $("#dPrice").textContent = plata(actual.price);
+  actualizarDetalle();
+  abrir("#detail");
+}
+function actualizarDetalle(){
+  document.querySelectorAll(".sw").forEach(s=>s.classList.toggle("on", s.dataset.c===color));
+  $("#dColor").textContent = color || "Elige uno";
+  $("#dQty").textContent = qty;
+  $("#dAdd").disabled = !color;
+  $("#dAdd").textContent = color ? `Agregar al pedido · ${plata(actual.price*qty)}` : "Elige un color";
+}
+$("#dSw").onclick = e => { const s=e.target.closest(".sw"); if(s){ color=s.dataset.c; actualizarDetalle(); } };
+$("#dMinus").onclick = () => { qty=Math.max(1,qty-1); actualizarDetalle(); };
+$("#dPlus").onclick = () => { qty++; actualizarDetalle(); };
+$("#dAdd").onclick = () => {
+  const ya = pedido.find(x=>x.id===actual.id && x.color===color);
+  ya ? ya.qty += qty : pedido.push({id:actual.id, color, qty});
+  guardar(); refrescar(); cerrar();
+};
+
+/* Pedido */
+const totalPedido = () => pedido.reduce((a,x)=>a+items[x.id].price*x.qty,0);
+function pintarPedido(){
+  $("#cTotal").textContent = plata(totalPedido());
+  $("#cItems").innerHTML = pedido.map((x,i)=>{ const p=items[x.id]; return `
+    <div class="row">
+      <img src="${p.img}" alt="">
+      <div class="t"><div>${p.name}</div>
+        <p>${typeLabel(p.type)} · <span class="dot" style="background:${colorHex(x.color)}"></span>${x.color}</p>
+        <p class="rp">${plata(p.price*x.qty)}</p></div>
+      <div class="qty"><button data-i="${i}" data-d="-1">−</button><b>${x.qty}</b><button data-i="${i}" data-d="1">+</button></div>
+    </div>`;}).join("");
+}
+$("#cItems").onclick = e => {
+  const b=e.target.closest("button[data-i]"); if(!b) return;
+  const x=pedido[+b.dataset.i]; x.qty += +b.dataset.d;
+  if(x.qty<1) pedido.splice(+b.dataset.i,1);
+  guardar(); refrescar();
+  pedido.length ? pintarPedido() : cerrar();
+};
+$("#cClear").onclick = () => { if(confirm("¿Vaciar todo el pedido?")){ pedido=[]; guardar(); refrescar(); cerrar(); } };
+$("#cSend").onclick = () => {
+  const nombre = $("#cName").value.trim();
+  const total = pedido.reduce((a,x)=>a+x.qty,0);
+  let msg = `Hola Marea 🌊 ${nombre?`Soy ${nombre}, q`:"Q"}uiero hacer este pedido:\n\n`;
+  pedido.forEach((x,i)=>{ const p=items[x.id];
+    msg += `${i+1}. *${p.name}*${p.type==="plus"?" (Talla Plus)":""}\n   Color: ${x.color} · Cantidad: ${x.qty} · ${plata(p.price*x.qty)}\n`; });
+  msg += `\n*Total: ${total} ${total===1?"body":"bodies"} · ${plata(totalPedido())}*`;
+  window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
+};
+$("#fab").onclick = () => { pintarPedido(); abrir("#cart"); };
+
+/* Utilidades */
+function refrescar(){
+  const n = pedido.reduce((a,x)=>a+x.qty,0);
+  $("#fabN").textContent = n;
+  $("#fab").classList.toggle("show", n>0);
+  pintarGrid();
+}
+function abrir(s){ $("#veil").classList.add("show"); $(s).classList.add("show"); document.body.style.overflow="hidden"; }
+function cerrar(){ document.querySelectorAll(".sheet.show").forEach(x=>x.classList.remove("show")); $("#veil").classList.remove("show"); document.body.style.overflow=""; }
+$("#veil").onclick = cerrar;
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=cerrar);
+document.addEventListener("keydown", e => { if(e.key==="Escape") cerrar(); });
+
+pintarTabs(); refrescar();
+</script>
+</body>
+</html>
