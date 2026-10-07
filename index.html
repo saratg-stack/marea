@@ -185,7 +185,7 @@ const COLORES = [
   ["Verde botella","#1C4A3E"],["Verde militar","#4F5E3A"],["Verde menta","#A9D9C4"]
 ];
 
-// [archivo de la foto, nombre a mostrar, tipo]  — tipo: "normal" o "plus"
+// [archivo de la foto, nombre a mostrar, tipo, precio especial (opcional)]  — tipo: "normal" o "plus"
 // Precios en pesos
 const PRECIO_NORMAL  = 28000;
 const PRECIO_HERRAJE = 32000;   // los que en el nombre dicen "Herraje"
@@ -213,7 +213,7 @@ const PRODUCTOS = [
   ["CAPEYA","Capeya","normal"],
   ["CATALEYA SISO","Cataleya Siso","normal"],
   ["FRANCIA MG LG","Francia Manga Larga","normal"],
-  ["GAZANIA","Gazania","normal"],
+  ["GAZANIA","Gazania","normal",37000],
   ["GINEBRA SISO","Ginebra Siso","normal"],
   ["GUADALUPE","Guadalupe","normal"],
   ["HERRAJE  ROI","Herraje Roi","normal"],
@@ -250,7 +250,7 @@ const PRODUCTOS = [
 
 const $ = s => document.querySelector(s);
 const precioDe = (f,t) => t==="plus" ? PRECIO_PLUS : /^HERRAJE/i.test(f) ? PRECIO_HERRAJE : PRECIO_NORMAL;
-const items = PRODUCTOS.map(([f,n,t],i)=>({id:i,file:f,img:"Bodies/"+encodeURIComponent(f)+".jpeg",name:n,type:t,price:precioDe(f,t)}));
+const items = PRODUCTOS.map(([f,n,t,pr],i)=>({id:i,file:f,img:"Bodies/"+encodeURIComponent(f)+".jpeg",name:n,type:t,price:pr||precioDe(f,t)}));
 const plata = n => "$" + n.toLocaleString("es-CO");
 const tallaDe = p => p.type==="plus" ? TALLA_PLUS : TALLA_NORMAL;
 const typeLabel = t => t==="plus" ? "Talla Plus" : "Básico";
