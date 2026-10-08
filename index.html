@@ -54,7 +54,8 @@
   .card:active{transform:scale(.98)}
   .ph{position:relative;aspect-ratio:7/10;background:var(--blush)}
   .ph img{width:100%;height:100%;object-fit:cover}
-  .badge{position:absolute;top:8px;left:8px;background:var(--lila);color:#5B4A8B;font-size:11px;font-weight:600;padding:4px 8px;border-radius:999px;letter-spacing:.04em}
+  .badges{position:absolute;top:8px;left:8px;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+  .badge{background:var(--lila);color:#5B4A8B;font-size:11px;font-weight:600;padding:4px 8px;border-radius:999px;letter-spacing:.04em}
   .b-mallatex{background:var(--menta);color:#2F6F64}
   .b-herraje{background:var(--blush);color:var(--rosa-osc)}
   .incart{position:absolute;top:8px;right:8px;background:var(--teal);color:#fff;font-size:12px;font-weight:600;min-width:24px;height:24px;border-radius:999px;display:none;align-items:center;justify-content:center;padding:0 7px}
@@ -197,7 +198,8 @@ const COLORES = [
   ["Verde botella","#1C4A3E"],["Verde militar","#4F5E3A"],["Verde menta","#A9D9C4"]
 ];
 
-// [archivo de la foto, nombre a mostrar, tipo, precio especial (opcional)]  — tipo: "normal" o "plus"
+// [archivo de la foto, nombre a mostrar, tipo, precio especial (opcional), extras (opcional)]  — tipo: "normal" o "plus"
+// extras: {mallatex:true} para ponerlo en Mallatex; {colores:[...]} si solo viene en algunos colores
 // Precios en pesos
 const PRECIO_NORMAL  = 28000;
 const PRECIO_HERRAJE = 32000;   // los que en el nombre dicen "Herraje"
@@ -256,20 +258,28 @@ const PRODUCTOS = [
   ["PLUS  MALAPALERMO MG LG","Palermo Manga Larga","plus"],
   ["PLUS ORQUIDEA","Orquídea","plus"],
   ["PLUS PERLA","Perla","plus"],
-  ["PLUS ROMA","Roma","plus"]
+  ["PLUS ROMA","Roma","plus"],
+  ["FERRERO MANGA LARGA PLUS","Ferrero Manga Larga Mallatex","plus",39000,{mallatex:true,colores:["Caramelo","Mantequilla","Vinotinto","Negro"]}],
+  ["CROCUS MANGA CORTA PLUS","Crocus Manga Corta Mallatex","plus",39000,{mallatex:true,colores:["Negro","Blanco","Caramelo","Camel","Café oscuro","Rojo","Verde botella","Mantequilla"]}]
 ];
 /* ========================================================== */
 
 const $ = s => document.querySelector(s);
 const precioDe = (f,t) => t==="plus" ? PRECIO_PLUS : /^HERRAJE/i.test(f) ? PRECIO_HERRAJE : PRECIO_NORMAL;
-const items = PRODUCTOS.map(([f,n,t,pr],i)=>({id:i,file:f,img:"Bodies/"+encodeURIComponent(f)+".jpeg",name:n,type:t,price:pr||precioDe(f,t)}));
+const items = PRODUCTOS.map(([f,n,t,pr,ex={}],i)=>({id:i,file:f,img:"Bodies/"+encodeURIComponent(f)+".jpeg",name:n,type:t,price:pr||precioDe(f,t),mallatex:!!ex.mallatex,colores:ex.colores||null}));
 const plata = n => "$" + n.toLocaleString("es-CO");
 const tallaDe = p => p.type==="plus" ? TALLA_PLUS : TALLA_NORMAL;
 // Categorías: Talla Plus por tipo; Mallatex = los de $37.000; Herraje = los de $32.000
-const catDe = p => p.type==="plus" ? "plus" : p.price===37000 ? "mallatex" : p.price===32000 ? "herraje" : "basico";
-items.forEach(p => p.cat = catDe(p));
+// Un body puede estar en varias categorías (ej: Talla Plus y Mallatex)
+const catsDe = p => { const c=[];
+  if(p.type==="plus") c.push("plus");
+  if(p.price===37000 || p.mallatex) c.push("mallatex");
+  if(p.price===32000) c.push("herraje");
+  return c.length ? c : ["basico"]; };
+items.forEach(p => p.cats = catsDe(p));
 const CATS = [["all","Todos"],["basico","Básicos"],["mallatex","Mallatex"],["herraje","Herraje"],["plus","Talla Plus"]];
-const catLabel = p => ({basico:"Básico",mallatex:"Mallatex",herraje:"Herraje",plus:"Talla Plus"})[p.cat];
+const NOMBRE_CAT = {basico:"Básico",mallatex:"Mallatex",herraje:"Herraje",plus:"Talla Plus"};
+const catLabel = p => p.cats.map(c=>NOMBRE_CAT[c]).join(" · ");
 const colorHex = name => (COLORES.find(c=>c[0]===name)||[,"#ccc"])[1];
 const isLight = hex => { const n=parseInt(hex.slice(1),16); return ((n>>16)*299+((n>>8)&255)*587+(n&255)*114)/1000 > 160; };
 
@@ -280,7 +290,7 @@ const guardar = () => { try { localStorage.setItem("marea_pedido", JSON.stringif
 
 /* Pestañas */
 function pintarTabs(){
-  const n = t => items.filter(p=>t==="all"||p.cat===t).length;
+  const n = t => items.filter(p=>t==="all"||p.cats.includes(t)).length;
   $("#tabs").innerHTML = CATS
     .map(([k,l])=>`<button class="tab ${filtro===k?"on":""}" data-t="${k}">${l} <small>${n(k)}</small></button>`).join("");
 }
@@ -289,13 +299,13 @@ $("#q").oninput = e => { texto = e.target.value.trim().toLowerCase().normalize("
 
 /* Catálogo */
 function pintarGrid(){
-  const lista = items.filter(p => (filtro==="all"||p.cat===filtro) &&
+  const lista = items.filter(p => (filtro==="all"||p.cats.includes(filtro)) &&
     p.name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").includes(texto));
   $("#grid").innerHTML = lista.length ? lista.map(p=>{
     const c = pedido.filter(x=>x.id===p.id).reduce((a,x)=>a+x.qty,0);
     return `<button class="card" data-id="${p.id}">
       <div class="ph"><img src="${p.img}" alt="${p.name}" loading="lazy">
-        ${p.cat!=="basico"?`<span class="badge b-${p.cat}">${catLabel(p).toUpperCase()}</span>`:""}
+        <div class="badges">${p.cats.filter(c=>c!=="basico").map(c=>`<span class="badge b-${c}">${NOMBRE_CAT[c].toUpperCase()}</span>`).join("")}</div>
         <span class="incart ${c?"show":""}">${c}</span></div>
       <div class="info"><div class="name">${p.name}</div><div class="sub">${tallaDe(p)}<br>${MATERIAL}</div><div class="price">${plata(p.price)}</div><div class="pick">Elegir</div></div>
     </button>`;}).join("") : `<p class="empty">No encontramos ese body 🙈</p>`;
@@ -304,9 +314,10 @@ $("#grid").onclick = e => { const c=e.target.closest(".card"); if(c) abrirDetall
 
 /* Detalle */
 let actual=null, color=null, alt=null, qty=1;
-$("#dSw").innerHTML = COLORES.map(([n,h])=>`<button class="sw" title="${n}" aria-label="${n}" data-c="${n}" style="background:${h};--chk:${isLight(h)?"#3B2E2A":"#fff"}"></button>`).join("");
 function abrirDetalle(id){
   actual = items[id]; color=null; alt=null; qty=1;
+  const disp = actual.colores ? COLORES.filter(([n])=>actual.colores.includes(n)) : COLORES;
+  $("#dSw").innerHTML = disp.map(([n,h])=>`<button class="sw" title="${n}" aria-label="${n}" data-c="${n}" style="background:${h};--chk:${isLight(h)?"#3B2E2A":"#fff"}"></button>`).join("");
   $("#dImg").src = actual.img; $("#dImg").alt = actual.name;
   $("#dName").textContent = actual.name;
   $("#dType").textContent = catLabel(actual) + " · " + tallaDe(actual) + " · " + MATERIAL;
