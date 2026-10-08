@@ -87,7 +87,8 @@
   .det-img{width:100%;height:min(54vh,560px);object-fit:contain;background:#fff;padding-top:8px}
   .det-name{font-size:22px;font-weight:600}
   .lbl{font-size:14px;font-weight:600;margin:18px 0 10px;display:flex;justify-content:space-between}
-  .lbl span{font-weight:400;color:var(--gris)}
+  .lbl{gap:12px}
+  .lbl span{font-weight:400;color:var(--gris);text-align:right}
   .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:10px}
   .sw{aspect-ratio:1;border-radius:999px;border:1px solid rgba(0,0,0,.12);position:relative}
   .sw.on{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--rosa)}
@@ -126,7 +127,7 @@
   <nav class="tabs" id="tabs"></nav>
 </header>
 
-<p class="intro">Toca un body, elige el color y agrégalo. Cuando termines, envía tu pedido por WhatsApp.<br><b>Colores sujetos a disponibilidad.</b></p>
+<p class="intro">Toca un body, elige uno o varios colores y agrégalo. Cuando termines, envía tu pedido por WhatsApp.<br><b>Colores sujetos a disponibilidad.</b></p>
 <div class="search"><input id="q" type="search" placeholder="Buscar por nombre… (ej: Málaga)" autocomplete="off"></div>
 
 <main class="grid" id="grid"></main>
@@ -146,13 +147,13 @@
     <div class="sub" id="dType"></div>
     <div class="det-name" id="dName"></div>
     <div class="det-price" id="dPrice"></div>
-    <div class="lbl">Color <span id="dColor">Elige uno</span></div>
-    <p class="aviso" style="margin-bottom:12px">ℹ️ <span><b>Colores sujetos a disponibilidad.</b> Te confirmamos por WhatsApp si el color que elegiste está disponible.</span></p>
+    <div class="lbl">Colores <span id="dColor">Elige uno o varios</span></div>
+    <p class="aviso" style="margin-bottom:12px">ℹ️ <span><b>Colores sujetos a disponibilidad.</b> Puedes elegir varios colores; la disponibilidad de cada uno se confirma por WhatsApp antes de tu compra.</span></p>
     <div class="swatches" id="dSw"></div>
-    <div class="lbl">Cantidad</div>
+    <div class="lbl" id="dQtyLbl">Cantidad</div>
     <div class="qty"><button id="dMinus">−</button><b id="dQty">1</b><button id="dPlus">+</button></div>
     <button class="add" id="dAdd" disabled>Elige un color</button>
-    <p class="hint">Puedes agregar el mismo body en varios colores.</p>
+    <p class="hint">Toca un color otra vez para quitarlo.</p>
   </div>
 </section>
 
@@ -164,7 +165,7 @@
     <div class="cart-title">Mi pedido</div>
     <div id="cItems"></div>
     <div class="total"><span>Total</span><b id="cTotal"></b></div>
-    <p class="aviso" style="margin-top:14px">ℹ️ <span><b>Colores sujetos a disponibilidad.</b> Al recibir tu pedido te confirmamos los colores disponibles.</span></p>
+    <p class="aviso" style="margin-top:14px">ℹ️ <span><b>Colores sujetos a disponibilidad.</b> Al recibir tu pedido te confirmamos la disponibilidad de cada color.</span></p>
     <input class="field" id="cName" placeholder="Tu nombre (opcional)" autocomplete="name">
     <button class="send" id="cSend">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
@@ -291,10 +292,10 @@ function pintarGrid(){
 $("#grid").onclick = e => { const c=e.target.closest(".card"); if(c) abrirDetalle(+c.dataset.id); };
 
 /* Detalle */
-let actual=null, color=null, qty=1;
+let actual=null, colores=[], qty=1;
 $("#dSw").innerHTML = COLORES.map(([n,h])=>`<button class="sw" title="${n}" aria-label="${n}" data-c="${n}" style="background:${h};--chk:${isLight(h)?"#3B2E2A":"#fff"}"></button>`).join("");
 function abrirDetalle(id){
-  actual = items[id]; color=null; qty=1;
+  actual = items[id]; colores=[]; qty=1;
   $("#dImg").src = actual.img; $("#dImg").alt = actual.name;
   $("#dName").textContent = actual.name;
   $("#dType").textContent = typeLabel(actual.type) + " · " + tallaDe(actual) + " · " + MATERIAL;
@@ -303,18 +304,23 @@ function abrirDetalle(id){
   abrir("#detail");
 }
 function actualizarDetalle(){
-  document.querySelectorAll(".sw").forEach(s=>s.classList.toggle("on", s.dataset.c===color));
-  $("#dColor").textContent = color || "Elige uno";
+  document.querySelectorAll(".sw").forEach(s=>s.classList.toggle("on", colores.includes(s.dataset.c)));
+  $("#dColor").textContent = colores.length ? colores.join(", ") : "Elige uno o varios";
   $("#dQty").textContent = qty;
-  $("#dAdd").disabled = !color;
-  $("#dAdd").textContent = color ? `Agregar al pedido · ${plata(actual.price*qty)}` : "Elige un color";
+  $("#dQtyLbl").textContent = colores.length>1 ? "Cantidad de cada color" : "Cantidad";
+  $("#dAdd").disabled = !colores.length;
+  const n = colores.length;
+  $("#dAdd").textContent = n ? `Agregar ${n>1?n+" colores":"al pedido"} · ${plata(actual.price*qty*n)}` : "Elige al menos un color";
 }
-$("#dSw").onclick = e => { const s=e.target.closest(".sw"); if(s){ color=s.dataset.c; actualizarDetalle(); } };
+$("#dSw").onclick = e => { const s=e.target.closest(".sw"); if(!s) return;
+  const c=s.dataset.c; colores = colores.includes(c) ? colores.filter(x=>x!==c) : [...colores, c]; actualizarDetalle(); };
 $("#dMinus").onclick = () => { qty=Math.max(1,qty-1); actualizarDetalle(); };
 $("#dPlus").onclick = () => { qty++; actualizarDetalle(); };
 $("#dAdd").onclick = () => {
-  const ya = pedido.find(x=>x.id===actual.id && x.color===color);
-  ya ? ya.qty += qty : pedido.push({id:actual.id, color, qty});
+  colores.forEach(color => {
+    const ya = pedido.find(x=>x.id===actual.id && x.color===color);
+    ya ? ya.qty += qty : pedido.push({id:actual.id, color, qty});
+  });
   guardar(); refrescar(); cerrar();
 };
 
@@ -346,7 +352,7 @@ $("#cSend").onclick = () => {
   pedido.forEach((x,i)=>{ const p=items[x.id];
     msg += `${i+1}. *${p.name}*${p.type==="plus"?" (Talla Plus)":""}\n   Color: ${x.color} · Cantidad: ${x.qty} · ${plata(p.price*x.qty)}\n`; });
   msg += `\n*Total: ${total} ${total===1?"body":"bodies"} · ${plata(totalPedido())}*`;
-  msg += `\n\n_Colores sujetos a disponibilidad. Quedo pendiente de la confirmación._`;
+  msg += `\n\n_Colores sujetos a disponibilidad. Quedo pendiente de la confirmación de cada color._`;
   window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
 };
 $("#wa").href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent("Hola Marea 🌊 Quiero información sobre los bodies.")}`;
