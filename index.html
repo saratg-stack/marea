@@ -35,7 +35,8 @@
   .top{display:flex;justify-content:center;padding:18px 16px 14px}
   .top img{height:48px;width:auto;max-width:80%}
   @media(min-width:640px){.top img{height:60px}}
-  .tabs{display:flex;gap:8px;padding:0 16px 12px;max-width:1100px;margin:0 auto;overflow-x:auto}
+  .tabs{display:flex;gap:8px;padding:0 16px 12px;max-width:1100px;margin:0 auto;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
   .tab{flex:1;min-width:max-content;padding:10px 14px;border-radius:999px;background:#fff;border:1px solid var(--borde);font-weight:500;font-size:15px;white-space:nowrap}
   .tab.on{background:var(--rosa);border-color:var(--rosa);color:#fff}
   .tab small{opacity:.75;font-weight:400}
@@ -262,7 +263,11 @@ const precioDe = (f,t) => t==="plus" ? PRECIO_PLUS : /^HERRAJE/i.test(f) ? PRECI
 const items = PRODUCTOS.map(([f,n,t,pr],i)=>({id:i,file:f,img:"Bodies/"+encodeURIComponent(f)+".jpeg",name:n,type:t,price:pr||precioDe(f,t)}));
 const plata = n => "$" + n.toLocaleString("es-CO");
 const tallaDe = p => p.type==="plus" ? TALLA_PLUS : TALLA_NORMAL;
-const typeLabel = t => t==="plus" ? "Talla Plus" : "Básico";
+// Categorías: Talla Plus por tipo; Mallatex y Herraje por el nombre de la foto
+const catDe = p => p.type==="plus" ? "plus" : /^MALLATEX/i.test(p.file) ? "mallatex" : /^HERRAJE/i.test(p.file) ? "herraje" : "basico";
+items.forEach(p => p.cat = catDe(p));
+const CATS = [["all","Todos"],["basico","Básicos"],["mallatex","Mallatex"],["herraje","Herraje"],["plus","Talla Plus"]];
+const catLabel = p => ({basico:"Básico",mallatex:"Mallatex",herraje:"Herraje",plus:"Talla Plus"})[p.cat];
 const colorHex = name => (COLORES.find(c=>c[0]===name)||[,"#ccc"])[1];
 const isLight = hex => { const n=parseInt(hex.slice(1),16); return ((n>>16)*299+((n>>8)&255)*587+(n&255)*114)/1000 > 160; };
 
@@ -273,8 +278,8 @@ const guardar = () => { try { localStorage.setItem("marea_pedido", JSON.stringif
 
 /* Pestañas */
 function pintarTabs(){
-  const n = t => items.filter(p=>t==="all"||p.type===t).length;
-  $("#tabs").innerHTML = [["all","Todos"],["normal","Básicos"],["plus","Talla Plus"]]
+  const n = t => items.filter(p=>t==="all"||p.cat===t).length;
+  $("#tabs").innerHTML = CATS
     .map(([k,l])=>`<button class="tab ${filtro===k?"on":""}" data-t="${k}">${l} <small>${n(k)}</small></button>`).join("");
 }
 $("#tabs").onclick = e => { const b=e.target.closest(".tab"); if(!b) return; filtro=b.dataset.t; pintarTabs(); pintarGrid(); };
@@ -282,7 +287,7 @@ $("#q").oninput = e => { texto = e.target.value.trim().toLowerCase().normalize("
 
 /* Catálogo */
 function pintarGrid(){
-  const lista = items.filter(p => (filtro==="all"||p.type===filtro) &&
+  const lista = items.filter(p => (filtro==="all"||p.cat===filtro) &&
     p.name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").includes(texto));
   $("#grid").innerHTML = lista.length ? lista.map(p=>{
     const c = pedido.filter(x=>x.id===p.id).reduce((a,x)=>a+x.qty,0);
@@ -302,7 +307,7 @@ function abrirDetalle(id){
   actual = items[id]; color=null; alt=null; qty=1;
   $("#dImg").src = actual.img; $("#dImg").alt = actual.name;
   $("#dName").textContent = actual.name;
-  $("#dType").textContent = typeLabel(actual.type) + " · " + tallaDe(actual) + " · " + MATERIAL;
+  $("#dType").textContent = catLabel(actual) + " · " + tallaDe(actual) + " · " + MATERIAL;
   $("#dPrice").textContent = plata(actual.price);
   actualizarDetalle();
   abrir("#detail");
@@ -346,7 +351,7 @@ function pintarPedido(){
     <div class="row">
       <img src="${p.img}" alt="">
       <div class="t"><div>${p.name}</div>
-        <p>${typeLabel(p.type)} · <span class="dot" style="background:${colorHex(x.color)}"></span>${x.color}</p>${x.alt?`<p>Si no hay: <span class="dot" style="background:${colorHex(x.alt)}"></span>${x.alt}</p>`:""}
+        <p>${catLabel(p)} · <span class="dot" style="background:${colorHex(x.color)}"></span>${x.color}</p>${x.alt?`<p>Si no hay: <span class="dot" style="background:${colorHex(x.alt)}"></span>${x.alt}</p>`:""}
         <p class="rp">${plata(p.price*x.qty)}</p></div>
       <div class="qty"><button data-i="${i}" data-d="-1">−</button><b>${x.qty}</b><button data-i="${i}" data-d="1">+</button></div>
     </div>`;}).join("");
