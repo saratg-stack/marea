@@ -223,7 +223,7 @@ const PRODUCTOS = [
   ["CAPEYA","Capeya","normal"],
   ["CATALEYA SISO","Cataleya Siso","normal"],
   ["FRANCIA MG LG","Francia Manga Larga","normal"],
-  ["GAZANIA","Gazania","normal",37000],
+  ["GAZANIA","Gazania Mallatex","normal",37000],
   ["GINEBRA SISO","Ginebra Siso","normal"],
   ["GUADALUPE","Guadalupe","normal"],
   ["HERRAJE  ROI","Herraje Roi","normal"],
@@ -237,7 +237,7 @@ const PRODUCTOS = [
   ["MALAGA MG CT","Málaga Manga Corta","normal"],
   ["MALAGA MG LG","Málaga Manga Larga","normal"],
   ["MALAGA SISO","Málaga Siso","normal"],
-  ["MALLATEX FERRERO MG LG","Mallatex Ferrero Manga Larga","normal",37000],
+  ["MALLATEX FERRERO MG LG","Ferrero Manga Larga Mallatex","normal",37000],
   ["MARIPOSA","Mariposa","normal"],
   ["MIEL","Miel","normal"],
   ["ORQUIDEA MG","Orquídea Manga","normal"],
@@ -263,8 +263,8 @@ const precioDe = (f,t) => t==="plus" ? PRECIO_PLUS : /^HERRAJE/i.test(f) ? PRECI
 const items = PRODUCTOS.map(([f,n,t,pr],i)=>({id:i,file:f,img:"Bodies/"+encodeURIComponent(f)+".jpeg",name:n,type:t,price:pr||precioDe(f,t)}));
 const plata = n => "$" + n.toLocaleString("es-CO");
 const tallaDe = p => p.type==="plus" ? TALLA_PLUS : TALLA_NORMAL;
-// Categorías: Talla Plus por tipo; Mallatex y Herraje por el nombre de la foto
-const catDe = p => p.type==="plus" ? "plus" : /^MALLATEX/i.test(p.file) ? "mallatex" : /^HERRAJE/i.test(p.file) ? "herraje" : "basico";
+// Categorías: Talla Plus por tipo; Mallatex = los de $37.000; Herraje por el nombre de la foto
+const catDe = p => p.type==="plus" ? "plus" : p.price===37000 ? "mallatex" : /^HERRAJE/i.test(p.file) ? "herraje" : "basico";
 items.forEach(p => p.cat = catDe(p));
 const CATS = [["all","Todos"],["basico","Básicos"],["mallatex","Mallatex"],["herraje","Herraje"],["plus","Talla Plus"]];
 const catLabel = p => ({basico:"Básico",mallatex:"Mallatex",herraje:"Herraje",plus:"Talla Plus"})[p.cat];
