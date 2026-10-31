@@ -36,11 +36,20 @@
   .top a{display:contents}
   .top img{height:48px;width:auto;max-width:80%}
   @media(min-width:640px){.top img{height:60px}}
-  .tabs{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 12px;max-width:1100px;margin:0 auto}
-  .tabs::-webkit-scrollbar{display:none}
-  .tab{flex:1 1 auto;padding:9px 12px;border-radius:999px;background:#fff;border:1px solid var(--borde);font-weight:500;font-size:15px;white-space:nowrap}
-  .tab.on{background:var(--rosa);border-color:var(--rosa);color:#fff}
-  .tab small{opacity:.75;font-weight:400}
+  /* Categorías: círculo con la foto de un body de esa categoría, para reconocerla sin leer */
+  .tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:0 10px 10px;max-width:640px;margin:0 auto}
+  .tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:2px 0;background:none;border:0;color:var(--tinta);font-size:12px;font-weight:500;line-height:1.15;text-align:center}
+  .tab .av{position:relative;width:50px;height:50px;border-radius:50%;padding:2px;border:2px solid var(--borde);background:#fff;transition:border-color .15s,transform .15s}
+  .tab .av i{display:block;width:100%;height:100%;border-radius:50%;overflow:hidden}
+  .tab .av img{width:100%;height:100%;object-fit:cover;object-position:center 48%;transform:scale(1.35);display:block}   /* se ve la prenda, no la cara */
+  .tab .av.todos img{object-fit:contain;padding:8px;transform:none;background:var(--blush)}
+  .tab .ct{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 4px;border-radius:999px;background:#fff;border:1px solid var(--borde);font-size:11px;font-weight:600;line-height:17px;color:var(--gris)}
+  .tab:active .av{transform:scale(.94)}
+  .tab.on .av{border-color:var(--rosa);box-shadow:0 0 0 2px var(--blush)}
+  .tab.on .ct{background:var(--rosa);border-color:var(--rosa);color:#fff}
+  .tab.on .lb{color:var(--rosa-osc);font-weight:700}
+  .tab:focus-visible{outline:none}.tab:focus-visible .av{box-shadow:0 0 0 3px var(--rosa)}
+  @media(min-width:640px){.tab{font-size:14px}.tab .av{width:76px;height:76px}}
 
   .intro{text-align:center;padding:18px 16px 4px;color:var(--gris);font-size:15px;max-width:600px;margin:0 auto}
   .search{max-width:1100px;margin:12px auto 0;padding:0 16px}
@@ -306,7 +315,9 @@ const catsDe = p => { const c=[];
   if(p.pequitas) c.push("pequitas");
   return c.length ? c : ["basico"]; };
 items.forEach(p => p.cats = catsDe(p));
-const CATS = [["all","Todos"],["basico","Básicos"],["mallatex","Mallatex"],["herraje","Herraje"],["pequitas","Pequitas"],["plus","Talla Plus"]];
+// [clave, nombre, foto del círculo]
+const CATS = [["all","Todos","isologo.png"],["basico","Básicos","Bodies/ATENAS.jpeg"],["mallatex","Mallatex","Bodies/GAZANIA.jpeg"],
+  ["herraje","Herraje","Bodies/HERRAJE%20ROMELIA.jpeg"],["pequitas","Pequitas","Bodies/ITALIANO%20PEQUITAS.jpeg"],["plus","Talla Plus","Bodies/PLUS%20MALAGA.jpeg"]];
 const NOMBRE_CAT = {basico:"Básico",mallatex:"Mallatex",herraje:"Herraje",pequitas:"Pequitas",plus:"Talla Plus"};
 const catLabel = p => p.cats.map(c=>NOMBRE_CAT[c]).join(" · ");
 const colorHex = name => (COLORES.find(c=>c[0]===name)||[,"#ccc"])[1];
@@ -321,7 +332,8 @@ const guardar = () => { try { localStorage.setItem("marea_pedido", JSON.stringif
 function pintarTabs(){
   const n = t => items.filter(p=>t==="all"||p.cats.includes(t)).length;
   $("#tabs").innerHTML = CATS
-    .map(([k,l])=>`<button class="tab ${filtro===k?"on":""}" data-t="${k}">${l} <small>${n(k)}</small></button>`).join("");
+    .map(([k,l,img])=>`<button class="tab ${filtro===k?"on":""}" data-t="${k}" aria-pressed="${filtro===k}">
+      <span class="av ${k==="all"?"todos":""}"><i><img src="${img}" alt=""></i><b class="ct">${n(k)}</b></span><span class="lb">${l}</span></button>`).join("");
 }
 // Cada categoría tiene su propia URL (ej: …/marea/#talla-plus) para compartir el link directo
 const SLUG = {basico:"basicos",mallatex:"mallatex",herraje:"herraje",pequitas:"pequitas",plus:"talla-plus"};
