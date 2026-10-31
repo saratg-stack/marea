@@ -293,7 +293,7 @@ const PRODUCTOS = [
 
 const $ = s => document.querySelector(s);
 const precioDe = (f,t) => t==="plus" ? PRECIO_PLUS : /^HERRAJE/i.test(f) ? PRECIO_HERRAJE : PRECIO_NORMAL;
-const items = PRODUCTOS.map(([f,n,t,pr,ex={}],i)=>({id:i,file:f,img:"Bodies/"+encodeURIComponent(f)+".jpeg",name:n,type:t,price:pr||precioDe(f,t),mallatex:!!ex.mallatex,pequitas:!!ex.pequitas,colores:ex.colores||null}));
+const items = PRODUCTOS.map(([f,n,t,pr,ex={}],i)=>({id:i,file:f,img:"Bodies/"+encodeURIComponent(f.normalize("NFD"))+".jpeg",name:n,type:t,price:pr||precioDe(f,t),mallatex:!!ex.mallatex,pequitas:!!ex.pequitas,colores:ex.colores||null}));
 const plata = n => "$" + n.toLocaleString("es-CO");
 const tallaDe = p => p.type==="plus" ? TALLA_PLUS : TALLA_NORMAL;
 // Categorías: Talla Plus por tipo; Mallatex = los de $37.000; Herraje = los de $32.000
