@@ -33,6 +33,7 @@
   /* Header */
   header{position:sticky;top:0;z-index:20;background:rgba(255,251,250,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--borde)}
   .top{display:flex;justify-content:center;padding:18px 16px 14px}
+  .top a{display:contents}
   .top img{height:48px;width:auto;max-width:80%}
   @media(min-width:640px){.top img{height:60px}}
   .tabs{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 12px;max-width:1100px;margin:0 auto}
@@ -132,7 +133,7 @@
 <body>
 
 <header>
-  <div class="top"><img src="Logo.png" alt="Marea"></div>
+  <div class="top"><a href="./" aria-label="Ver todo el catálogo"><img src="Logo.png" alt="Marea"></a></div>
   <nav class="tabs" id="tabs"></nav>
 </header>
 
@@ -327,10 +328,13 @@ const SLUG = {basico:"basicos",mallatex:"mallatex",herraje:"herraje",pequitas:"p
 const filtroDeUrl = () => { const h=decodeURIComponent(location.hash.slice(1)).toLowerCase();
   return Object.keys(SLUG).find(k=>SLUG[k]===h) || "all"; };
 filtro = filtroDeUrl();
-window.onhashchange = () => { filtro = filtroDeUrl(); pintarTabs(); pintarGrid(); };
-$("#tabs").onclick = e => { const b=e.target.closest(".tab"); if(!b) return; filtro=b.dataset.t;
-  history.replaceState(null, "", filtro==="all" ? location.pathname+location.search : "#"+SLUG[filtro]);
-  pintarTabs(); pintarGrid(); };
+// Cada cambio de categoría queda en el historial: la flecha «atrás» vuelve a la anterior y al inicio
+const irA = t => { if(t===filtro) return; filtro=t;
+  history.pushState(null, "", t==="all" ? location.pathname+location.search : "#"+SLUG[t]);
+  pintarTabs(); pintarGrid(); scrollTo(0,0); };
+window.onpopstate = () => { filtro = filtroDeUrl(); pintarTabs(); pintarGrid(); };
+$("#tabs").onclick = e => { const b=e.target.closest(".tab"); if(b) irA(b.dataset.t); };
+$(".top a").onclick = e => { e.preventDefault(); irA("all"); };   // el logo lleva a «Todos»
 $("#q").oninput = e => { texto = e.target.value.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); pintarGrid(); };
 
 /* Catálogo */
