@@ -58,6 +58,7 @@
   .badge{background:var(--lila);color:#5B4A8B;font-size:11px;font-weight:600;padding:4px 8px;border-radius:999px;letter-spacing:.04em}
   .b-mallatex{background:var(--menta);color:#2F6F64}
   .b-herraje{background:var(--blush);color:var(--rosa-osc)}
+  .b-pequitas{background:var(--tinta);color:var(--fondo)}
   .incart{position:absolute;top:8px;right:8px;background:var(--teal);color:#fff;font-size:12px;font-weight:600;min-width:24px;height:24px;border-radius:999px;display:none;align-items:center;justify-content:center;padding:0 7px}
   .incart.show{display:flex}
   .info{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px;flex:1}
@@ -199,11 +200,12 @@ const COLORES = [
 ];
 
 // [archivo de la foto, nombre a mostrar, tipo, precio especial (opcional), extras (opcional)]  — tipo: "normal" o "plus"
-// extras: {mallatex:true} para ponerlo en Mallatex; {colores:[...]} si solo viene en algunos colores
+// extras: {mallatex:true} para ponerlo en Mallatex; {pequitas:true} para Pequitas; {colores:[...]} si solo viene en algunos colores
 // Precios en pesos
 const PRECIO_NORMAL  = 28000;
 const PRECIO_HERRAJE = 32000;   // los que en el nombre dicen "Herraje"
 const PRECIO_PLUS    = 34000;
+const PRECIO_PEQUITAS = 34000;  // estampado de puntos
 
 // Descripción de tallas
 const TALLA_NORMAL = "Sede hasta la talla L";
@@ -260,13 +262,38 @@ const PRODUCTOS = [
   ["PLUS PERLA","Perla","plus"],
   ["PLUS ROMA","Roma","plus"],
   ["FERRERO MANGA LARGA PLUS","Ferrero Manga Larga Mallatex","plus",39000,{mallatex:true,colores:["Caramelo","Mantequilla","Vinotinto","Negro"]}],
-  ["CROCUS MANGA CORTA PLUS","Crocus Manga Corta Mallatex","plus",39000,{mallatex:true,colores:["Negro","Blanco","Caramelo","Camel","Café oscuro","Rojo","Verde botella","Mantequilla"]}]
+  ["CROCUS MANGA CORTA PLUS","Crocus Manga Corta Mallatex","plus",39000,{mallatex:true,colores:["Negro","Blanco","Caramelo","Camel","Café oscuro","Rojo","Verde botella","Mantequilla"]}],
+  // Nuevos 31 oct (van al final para no cambiar los pedidos guardados)
+  ["AURORA ESTRAPLE","Aurora Strapless","normal"],
+  ["FRANCIA SISO","Francia Siso","normal"],
+  ["GINEGRA MANGA LARGA","Ginebra Manga Larga","normal"],
+  ["LUPE","Lupe","normal"],
+  ["ROMA MANGA CORTA","Roma Manga Corta","normal"],
+  ["SARA'S","Sara's","normal"],
+  ["SEVILLA MANGA LARGA","Sevilla Manga Larga","normal"],
+  ["GENOVEVA HERRAJE","Genoveva Herraje","normal",32000],
+  ["MARCELLA HERRAJE","Marcella Herraje","normal",32000],
+  ["MURANO HERRAJE","Murano Herraje","normal",32000],
+  ["ALMA SISO PEQUITAS","Alma Siso Pequitas","normal",PRECIO_PEQUITAS,{pequitas:true}],
+  ["CAPEYA PEQUITAS","Capeya Pequitas","normal",PRECIO_PEQUITAS,{pequitas:true}],
+  ["ITALIANO PEQUITAS","Italiano Pequitas","normal",PRECIO_PEQUITAS,{pequitas:true}],
+  ["MÁLAGA MANGA CORTA PEQUITAS","Málaga Manga Corta Pequitas","normal",PRECIO_PEQUITAS,{pequitas:true}],
+  ["MAYORCA MANGA CORTA PEQUITAS","Mayorca Manga Corta Pequitas","normal",PRECIO_PEQUITAS,{pequitas:true}],
+  ["PERLA MANGA CORTA PEQUITAS","Perla Manga Corta Pequitas","normal",PRECIO_PEQUITAS,{pequitas:true}],
+  ["SUPREMA PEQUITAS","Suprema Pequitas","normal",PRECIO_PEQUITAS,{pequitas:true}],
+  ["VIENA PEQUITAS","Viena Pequitas","normal",PRECIO_PEQUITAS,{pequitas:true}],
+  ["ALMA MANGA LARGA PLUS","Alma Manga Larga","plus"],
+  ["LUPE PLUS","Lupe","plus"],
+  ["MIEL PLUS","Miel","plus"],
+  ["VENECIA PLUS","Venecia","plus"],
+  ["AMARANTO MALLATEX PLUS","Amaranto Mallatex","plus",39000,{mallatex:true}],
+  ["GAZANIA MALLATEX PLUS","Gazania Mallatex","plus",39000,{mallatex:true}]
 ];
 /* ========================================================== */
 
 const $ = s => document.querySelector(s);
 const precioDe = (f,t) => t==="plus" ? PRECIO_PLUS : /^HERRAJE/i.test(f) ? PRECIO_HERRAJE : PRECIO_NORMAL;
-const items = PRODUCTOS.map(([f,n,t,pr,ex={}],i)=>({id:i,file:f,img:"Bodies/"+encodeURIComponent(f)+".jpeg",name:n,type:t,price:pr||precioDe(f,t),mallatex:!!ex.mallatex,colores:ex.colores||null}));
+const items = PRODUCTOS.map(([f,n,t,pr,ex={}],i)=>({id:i,file:f,img:"Bodies/"+encodeURIComponent(f)+".jpeg",name:n,type:t,price:pr||precioDe(f,t),mallatex:!!ex.mallatex,pequitas:!!ex.pequitas,colores:ex.colores||null}));
 const plata = n => "$" + n.toLocaleString("es-CO");
 const tallaDe = p => p.type==="plus" ? TALLA_PLUS : TALLA_NORMAL;
 // Categorías: Talla Plus por tipo; Mallatex = los de $37.000; Herraje = los de $32.000
@@ -275,10 +302,11 @@ const catsDe = p => { const c=[];
   if(p.type==="plus") c.push("plus");
   if(p.price===37000 || p.mallatex) c.push("mallatex");
   if(p.price===32000) c.push("herraje");
+  if(p.pequitas) c.push("pequitas");
   return c.length ? c : ["basico"]; };
 items.forEach(p => p.cats = catsDe(p));
-const CATS = [["all","Todos"],["basico","Básicos"],["mallatex","Mallatex"],["herraje","Herraje"],["plus","Talla Plus"]];
-const NOMBRE_CAT = {basico:"Básico",mallatex:"Mallatex",herraje:"Herraje",plus:"Talla Plus"};
+const CATS = [["all","Todos"],["basico","Básicos"],["mallatex","Mallatex"],["herraje","Herraje"],["pequitas","Pequitas"],["plus","Talla Plus"]];
+const NOMBRE_CAT = {basico:"Básico",mallatex:"Mallatex",herraje:"Herraje",pequitas:"Pequitas",plus:"Talla Plus"};
 const catLabel = p => p.cats.map(c=>NOMBRE_CAT[c]).join(" · ");
 const colorHex = name => (COLORES.find(c=>c[0]===name)||[,"#ccc"])[1];
 const isLight = hex => { const n=parseInt(hex.slice(1),16); return ((n>>16)*299+((n>>8)&255)*587+(n&255)*114)/1000 > 160; };
@@ -294,13 +322,22 @@ function pintarTabs(){
   $("#tabs").innerHTML = CATS
     .map(([k,l])=>`<button class="tab ${filtro===k?"on":""}" data-t="${k}">${l} <small>${n(k)}</small></button>`).join("");
 }
-$("#tabs").onclick = e => { const b=e.target.closest(".tab"); if(!b) return; filtro=b.dataset.t; pintarTabs(); pintarGrid(); };
+// Cada categoría tiene su propia URL (ej: …/marea/#talla-plus) para compartir el link directo
+const SLUG = {basico:"basicos",mallatex:"mallatex",herraje:"herraje",pequitas:"pequitas",plus:"talla-plus"};
+const filtroDeUrl = () => { const h=decodeURIComponent(location.hash.slice(1)).toLowerCase();
+  return Object.keys(SLUG).find(k=>SLUG[k]===h) || "all"; };
+filtro = filtroDeUrl();
+window.onhashchange = () => { filtro = filtroDeUrl(); pintarTabs(); pintarGrid(); };
+$("#tabs").onclick = e => { const b=e.target.closest(".tab"); if(!b) return; filtro=b.dataset.t;
+  history.replaceState(null, "", filtro==="all" ? location.pathname+location.search : "#"+SLUG[filtro]);
+  pintarTabs(); pintarGrid(); };
 $("#q").oninput = e => { texto = e.target.value.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); pintarGrid(); };
 
 /* Catálogo */
 function pintarGrid(){
   const lista = items.filter(p => (filtro==="all"||p.cats.includes(filtro)) &&
-    p.name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").includes(texto));
+    p.name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").includes(texto))
+    .sort((a,b)=>(a.type==="plus")-(b.type==="plus"));   // Talla Plus siempre al final
   $("#grid").innerHTML = lista.length ? lista.map(p=>{
     const c = pedido.filter(x=>x.id===p.id).reduce((a,x)=>a+x.qty,0);
     return `<button class="card" data-id="${p.id}">
